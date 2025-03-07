@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Cpu from './components/Cpu.jsx'
 import os from 'node:os';
 import BasicLineChart from './components/Chart.jsx'
@@ -6,12 +6,10 @@ import Button from '@mui/material/Button';
 import './App.css'
 
 
-const App = (props) => {
-  const [cpu, setCpu] = useState([1, 2, 3, 5, 8, 10]);
-  const [time, setTime] = useState([1741230702480, 1741230704096, 1741230717779, 1741230718705, 1741230719352, 1741230719781]);
+const App = () => {
 
-  const getTime = Date.now()
-  const getCpu = os.cpus().length
+  const [cpu, setCpu] = useState([Math.floor(Math.random() * 10)]);
+  const [time, setTime] = useState([Date.now()]);
 
   const setCpuModule = (newCpu) => {
     setCpu([
@@ -27,6 +25,15 @@ const App = (props) => {
     ])
   }
 
+  useEffect(() => {
+
+    const interval = setInterval(() => {
+      setTimeModule(Date.now());
+      setCpuModule(Math.floor(Math.random() * 10));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [setCpuModule, setTimeModule]);
+
   return (
     <>
       <BasicLineChart
@@ -36,21 +43,20 @@ const App = (props) => {
       <Button
         variant="outlined"
         onClick={() => {
-          setTimeModule(getTime)
-          setCpuModule(getCpu)
+          // setTimeModule(getTime)
+          // setCpuModule(getCpu)
+          console.log(cpu, time)
         }
         }
       >
         test
       </Button>
-      <Cpu 
+      {/* <Cpu 
         setCpuModule={setCpuModule}
         cpu={cpu}
         setTimeModule={setTimeModule}
         time={time}
-      />
-      {/* <Events /> */}
-      {/* <Cpu /> */}
+      /> */}
     </>
   )
 }

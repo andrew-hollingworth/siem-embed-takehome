@@ -1,10 +1,10 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import os from 'node:os';
 
 
-const Cpu = () => {
-  let cpu = os.cpus()
-  console.log(cpu)
+
+const Cpu = (props) => {
+
 }
 
 export default Cpu
