@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import tsconfigPaths from "vite-tsconfig-paths"
 
 
@@ -8,9 +7,6 @@ import tsconfigPaths from "vite-tsconfig-paths"
 export default defineConfig({
   plugins: [
     react(),
-    nodePolyfills({
-      protocolImports: true
-    }),
     tsconfigPaths(),
   ]
 })
