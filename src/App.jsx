@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import dayjs from 'dayjs'
-import { number } from './services/cpu-helper'
-import os from 'node:os';
 import EventTimeline from './components/Timeline'
 import CpuGraph from './components/CpuGraph.jsx'
 
@@ -23,10 +21,15 @@ const Item = styled(Paper)(({ theme }) => ({
 
 const App = () => {
 
-  const [cpu, setCpu] = useState([Math.floor(Math.random() * 3)]);
+  const [cpu, setCpu] = useState([0]);
   const [time, setTime] = useState([Date.now()]);
 
   useEffect(() => {
+    const cpuAvg = (cpus, loadavg) => {
+      let value = loadavg/cpus
+      return value
+    }
+
     const setCpuModule = (newCpu) => {
       setCpu([
         ...cpu,
@@ -40,10 +43,18 @@ const App = () => {
         newTime
       ])
     }
+
+    const getCpuModule = () => {
+      fetch('http://localhost:3001/os-info')
+      .then((response) => response.json())
+      .then((data) => cpuAvg(data.cpulength, data.loadavg[0]))
+      .then((value) => setCpuModule(value))
+    }
+
     //Get data every 10 seconds
     const interval = setInterval(() => {
       setTimeModule(Date.now());
-      setCpuModule(Math.floor(Math.random() * 4));
+      getCpuModule()
     }, 10000);
     return () => clearInterval(interval);
   }, [cpu, time]);
@@ -54,13 +65,14 @@ const App = () => {
         display: 'flex',
         '& > :not(style)': {
           m: 3,
-        width: 1
+        minWidth: 400,
+        height: 500
         },
       }}
-    >
+    > 
       <Paper 
         size={8}
-        square={false}
+        sx={{ width:2/3}}
       >
       <CpuGraph
         cpu={cpu}
@@ -68,8 +80,7 @@ const App = () => {
       />
       </Paper>
       <Paper 
-      size={4}
-      square={false}
+      sx={{ width:1/3, overflow: 'scroll', maxHeight: 500 }}
       >
       <EventTimeline
         cpu={cpu}
@@ -77,6 +88,7 @@ const App = () => {
       />
       </Paper>
     </Box>
+
   )
 }
 

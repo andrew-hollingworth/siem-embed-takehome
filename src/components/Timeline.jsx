@@ -36,11 +36,11 @@ const EventTimeline = (props) => {
         </TimelineSeparator>
         {history.breached ?
           <>
-            <TimelineContent>High load generated an alert: load of {cpu[history.indexOf]}, triggered at {dayjs(time[history.indexOf]).format('MMM D h:mm:ss:A')}</TimelineContent>
+            <TimelineContent>High CPU load generated an alert: load of {cpu[history.indexOf]} at {dayjs(time[history.indexOf]).format('MMM D h:mm:ss:A')}</TimelineContent>
           </>
           :
           <>
-            <TimelineContent>Recovered below 1 over the past 2 minutes at: {dayjs(time[history.indexOf]).format('MMM D h:mm:ss:A')}</TimelineContent>
+            <TimelineContent>Recovered: CPU fell below 1 over the past 2 minutes at: {dayjs(time[history.indexOf]).format('MMM D h:mm:ss:A')}</TimelineContent>
           </>}
       </TimelineItem>
     }
@@ -73,8 +73,10 @@ const EventTimeline = (props) => {
         }
         let avg = sum / 3
         if (lastHistory && avg < 1) {
+          // Set breached state and log the index
           setHistoryModule(false, length - 1)
         } else if (!lastHistory && avg > 1) {
+          // Set recovered state and log the index
           setHistoryModule(true, length - 1)
         } else {
           return
@@ -85,7 +87,13 @@ const EventTimeline = (props) => {
   }, [cpu, time, history]);
 
   return (
-    <Timeline>
+    <Timeline
+    sx={{
+      [`& .${timelineOppositeContentClasses.root}`]: {
+        flex: 0.2,
+      },
+    }}
+    >
       {buildTimeline}
     </Timeline>
   );

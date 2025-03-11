@@ -9,7 +9,6 @@ import Paper from '@mui/material/Paper';
 const CpuGraph = (props) => {
   const [range, setRange] = useState([props.time[0], (props.time[0] + 600000)]);
 
-
   useEffect(() => {
     const handleRange = (time) => {
       let length = time.length
@@ -26,13 +25,14 @@ const CpuGraph = (props) => {
   }, [props]);
 
   return (
-    <LineChart
+<LineChart
       xAxis={[
         {
-          scaleType: "utc",
+          scaleType: "time",
           data: props.time,
           min: range[0],
           max: range[1],
+          label: 'Time'
         },
       ]}
       height={400}
@@ -43,7 +43,9 @@ const CpuGraph = (props) => {
         },
       ]}
       yAxis={[{
-        min: 0
+        min: 0,
+        max: 2,
+        label: 'CPU'
       }]}
     />
   );
