@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs'
+import cpuAvg from './services'
 
 import Timeline from '@mui/lab/Timeline';
 import TimelineItem from '@mui/lab/TimelineItem';
@@ -75,63 +76,24 @@ const EventTimeline = (props) => {
     ])
   }, [history])
 
-  const cpuCallback = useCallback((cpu, time, history) => {
-    let length = time.length
+  const handleHistoryModule = useCallback((avg, history) =>{
     let historyIndex = history.length - 1
     let lastHistory = history[historyIndex].breached
-    if (length < 3) {
-      //No need to go any further, cpu can't have breached if we don't have two minute's data
-      return
+    if (lastHistory && avg < 0.2) {
+      // Set breached state and log the index
+      setHistoryModule(false, length - 1)
+    } else if (!lastHistory && avg > 0.2) {
+      // Set recovered state and log the index
+      setHistoryModule(true, length - 1)
     } else {
-      // Calculate the average over the last 2 minutes
-      let sum = 0
-      for (let i = length - 3; i <= length - 1; i++) {
-        sum += cpu[i]
-      }
-      let avg = sum / 3
-      if (lastHistory && avg < 0.2) {
-        // Set breached state and log the index
-        setHistoryModule(false, length - 1)
-      } else if (!lastHistory && avg > 0.2) {
-        // Set recovered state and log the index
-        setHistoryModule(true, length - 1)
-      } else {
-        return
-      }
-    }
-   }, [setHistoryModule])
-
-
-  const evaluateCpu = (cpu, time, history) => {
-    let length = time.length
-    let historyIndex = history.length - 1
-    let lastHistory = history[historyIndex].breached
-    if (length < 3) {
-      //No need to go any further, cpu can't have breached if we don't have two minute's data
       return
-    } else {
-      // Calculate the average over the last 2 minutes
-      let sum = 0
-      for (let i = length - 3; i <= length - 1; i++) {
-        sum += cpu[i]
-      }
-      let avg = sum / 3
-      if (lastHistory && avg < 0.2) {
-        // Set breached state and log the index
-        setHistoryModule(false, length - 1)
-      } else if (!lastHistory && avg > 0.2) {
-        // Set recovered state and log the index
-        setHistoryModule(true, length - 1)
-      } else {
-        return
-      }
     }
-  }
+  }, [setHistoryModule])
 
 
   useEffect(() => {
-    cpuCallback(cpu, time, history)
-  }, [cpu, time, history, cpuCallback]);
+    handleHistoryModule(cpuAvg(cpu, time), history)
+  }, [cpu, time, history, handleHistoryModule]);
 
   return (
     <Timeline
