@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs'
 
 import Timeline from '@mui/lab/Timeline';
@@ -14,18 +14,37 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 const EventTimeline = (props) => {
   // track the index and state of breaches and recoveries
   const [history, setHistory] = useState([{ breached: false, indexOf: 0 }])
+
+  let open = props.anchor;
   let cpu = props.cpu
   let time = props.time
   let historyLength = history.length
 
+  const handleOpen = (event) => {
+    props.setAnchor(event.currentTarget);
+    const target = event.currentTarget;
+    const propValue = target.getAttribute('datakey')
+    console.log(propValue)
+  };
+
+  const handleClose = () => {
+    props.setAnchor(null);
+  };
+
+
   const buildTimeline = (historyLength > 1) && history.map((history, index) => {
     if (index > 0) {
-      return <TimelineItem key={index}>
-        <TimelineOppositeContent color="textSecondary">
+      return <TimelineItem
+        key={index}
+        onMouseEnter={handleOpen}
+        onMouseLeave={handleClose}
+        datakey={history.indexOf}
+      >
+        <TimelineOppositeContent color={open ? "error" : "success"}>
           {dayjs(time[history.indexOf]).format('h:mm:ss:A')}
         </TimelineOppositeContent>
         <TimelineSeparator>
-          <TimelineDot />
+          <TimelineDot color={history.breached ? "error" : "success"} />
           {historyLength - 1 > index ?
             <>
               <TimelineConnector />
@@ -49,50 +68,78 @@ const EventTimeline = (props) => {
     }
   })
 
+  const setHistoryModule = useCallback((breach, index) => {
+    setHistory([
+      ...history,
+      { breached: breach, indexOf: index }
+    ])
+  }, [history])
 
-  useEffect(() => {
-    const setHistoryModule = (breach, index) => {
-      setHistory([
-        ...history,
-        { breached: breach, indexOf: index }
-      ])
-    }
-
-    const evaluateCpu = (cpu, time, history) => {
-      let length = time.length
-      let historyIndex = history.length - 1
-      let lastHistory = history[historyIndex].breached
-      if (length < 3) {
-        //No need to go any further, cpu can't have breached if we don't have two minute's data
-        return
+  const cpuCallback = useCallback((cpu, time, history) => {
+    let length = time.length
+    let historyIndex = history.length - 1
+    let lastHistory = history[historyIndex].breached
+    if (length < 3) {
+      //No need to go any further, cpu can't have breached if we don't have two minute's data
+      return
+    } else {
+      // Calculate the average over the last 2 minutes
+      let sum = 0
+      for (let i = length - 3; i <= length - 1; i++) {
+        sum += cpu[i]
+      }
+      let avg = sum / 3
+      if (lastHistory && avg < 0.2) {
+        // Set breached state and log the index
+        setHistoryModule(false, length - 1)
+      } else if (!lastHistory && avg > 0.2) {
+        // Set recovered state and log the index
+        setHistoryModule(true, length - 1)
       } else {
-        // Calculate the average over the last 2 minutes
-        let sum = 0
-        for (let i = length - 3; i <= length - 1; i++) {
-          sum += cpu[i]
-        }
-        let avg = sum / 3
-        if (lastHistory && avg < 1) {
-          // Set breached state and log the index
-          setHistoryModule(false, length - 1)
-        } else if (!lastHistory && avg > 1) {
-          // Set recovered state and log the index
-          setHistoryModule(true, length - 1)
-        } else {
-          return
-        }
+        return
       }
     }
-    evaluateCpu(cpu, time, history)
-  }, [cpu, time, history]);
+   }, [setHistoryModule])
+
+
+  const evaluateCpu = (cpu, time, history) => {
+    let length = time.length
+    let historyIndex = history.length - 1
+    let lastHistory = history[historyIndex].breached
+    if (length < 3) {
+      //No need to go any further, cpu can't have breached if we don't have two minute's data
+      return
+    } else {
+      // Calculate the average over the last 2 minutes
+      let sum = 0
+      for (let i = length - 3; i <= length - 1; i++) {
+        sum += cpu[i]
+      }
+      let avg = sum / 3
+      if (lastHistory && avg < 0.2) {
+        // Set breached state and log the index
+        setHistoryModule(false, length - 1)
+      } else if (!lastHistory && avg > 0.2) {
+        // Set recovered state and log the index
+        setHistoryModule(true, length - 1)
+      } else {
+        return
+      }
+    }
+  }
+
+
+  useEffect(() => {
+    cpuCallback(cpu, time, history)
+  }, [cpu, time, history, cpuCallback]);
 
   return (
     <Timeline
-    sx={{
-      [`& .${timelineOppositeContentClasses.root}`]: {
-        flex: 0.2,
-      },
-    }}
+      sx={{
+        [`& .${timelineOppositeContentClasses.root}`]: {
+          flex: 0.2,
+        },
+      }}
     >
       {buildTimeline}
     </Timeline>
