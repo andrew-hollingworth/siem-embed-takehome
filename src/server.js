@@ -14,6 +14,11 @@ app.get('/os-info', (req, res) => {
         cpus: os.cpus(),
         loadavg: os.loadavg(),
         cpulength: os.cpus().length,
+        arch: os.arch(),
+        platform: os.platform(),
+        hostname: os.hostname(),
+        freeMem: os.freemem(),
+        totalMem: os.totalmem()
     });
 });
 

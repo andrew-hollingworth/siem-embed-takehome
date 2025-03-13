@@ -5,13 +5,15 @@ import CpuGraph from './components/CpuGraph.jsx'
 import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 import Container from '@mui/material/Container';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import './App.css'
 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-// background 1d1c1f
 
 const theme = createTheme({
   palette: {
@@ -43,20 +45,31 @@ const App = () => {
   const [anchor, setAnchor] = useState(null);
   const [cpu, setCpu] = useState([0]);
   const [time, setTime] = useState([Date.now()]);
+  const [colorMode, setColorMode] = React.useState(theme.palette.mode);
+  const [osData, setOsData] = useState({arch: '', freeMem: 0, totalMem: 0, hostname: '', platform: ''});
+
+
+  const handleOsImport = (data) => {
+    const dataOs = {};
+      for (const [key, value] of Object.entries(data)) {
+        const validKeys = ['arch', 'platform', 'hostname', 'freeMem', 'totalMem']
+        validKeys.indexOf(key) >= 0 ? (dataOs[key] = value ): null
+      } 
+    setOsData(dataOs);
+  }
+
 
   useEffect(() => {
     const cpuAvg = (cpus, loadavg) => {
       let value = loadavg / cpus
       return value
     }
-
     const setCpuModule = (newCpu) => {
       setCpu([
         ...cpu,
         newCpu
       ])
     }
-
     const setTimeModule = (newTime) => {
       setTime([
         ...time,
@@ -64,17 +77,19 @@ const App = () => {
       ])
     }
 
-    const getCpuModule = () => {
-      fetch('http://localhost:3001/os-info')
-        .then((response) => response.json())
-        .then((data) => cpuAvg(data.cpulength, data.loadavg[0]))
-        .then((value) => setCpuModule(value))
+
+    const getServer = async () => {
+      let resp = await fetch('http://localhost:3001/os-info');
+      let data = await resp.json();
+      let value = cpuAvg(data.cpulength, data.loadavg[0])
+      setCpuModule(value)
+      handleOsImport(data)
     }
 
     //Get data every 10 seconds
     const interval = setInterval(() => {
       setTimeModule(Date.now());
-      getCpuModule()
+      getServer()
     }, 10000);
     return () => clearInterval(interval);
   }, [cpu, time]);
@@ -82,6 +97,18 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* <Button
+        sx={{ ml: 1 }}
+        onClick={() =>
+          setColorMode((prev) => (prev === 'light' ? 'dark' : 'light'))
+        }
+        color="inherit"
+        endIcon={
+          colorMode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />
+        }
+      >
+        {colorMode} mode
+      </Button> */}
       <Box
         sx={{
           display: 'flex',
@@ -99,7 +126,7 @@ const App = () => {
         >
           <CpuGraph
             cpu={cpu}
-            time={time}            
+            time={time}
             anchor={anchor}
             setAnchor={setAnchor}
             highlightedItem={highlightedItem}
