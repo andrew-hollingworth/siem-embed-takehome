@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import dayjs from 'dayjs'
-import cpuAvg from './services'
 
 import Timeline from '@mui/lab/Timeline';
 import TimelineItem from '@mui/lab/TimelineItem';
@@ -9,18 +8,17 @@ import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import TimelineOppositeContent, { timelineOppositeContentClasses } from '@mui/lab/TimelineOppositeContent';
-import WarningIcon from '@mui/icons-material/Warning';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 
 const EventTimeline = (props) => {
-  // track the index and state of breaches and recoveries
   const [history, setHistory] = useState([{ breached: false, indexOf: 0 }])
-
   let open = props.anchor;
   let cpu = props.cpu
   let time = props.time
   let historyLength = history.length
 
+
+  //////// Hover Behavior//////////////
   const handleOpen = (event) => {
     props.setAnchor(event.currentTarget);
     const target = event.currentTarget;
@@ -36,19 +34,21 @@ const EventTimeline = (props) => {
   const buildTimeline = (historyLength > 1) && history.map((history, index) => {
     if (index > 0) {
       return <TimelineItem
+        data-testid="timelineitem"
         key={index}
         onMouseEnter={handleOpen}
         onMouseLeave={handleClose}
         datakey={history.indexOf}
       >
-        <TimelineOppositeContent color={open ? "error" : "success"}>
+        <TimelineOppositeContent color={history.breached  ? "error" : "success"}>
           {dayjs(time[history.indexOf]).format('h:mm:ss:A')}
         </TimelineOppositeContent>
         <TimelineSeparator>
           <TimelineDot color={history.breached ? "error" : "success"} />
           {historyLength - 1 > index ?
             <>
-              <TimelineConnector />
+              <TimelineConnector
+              data-testid="timelineconnector" />
             </>
             :
             <>
@@ -76,27 +76,45 @@ const EventTimeline = (props) => {
     ])
   }, [history])
 
-  const handleHistoryModule = useCallback((avg, history) =>{
+  const cpuAvg = (cpu, time) => {
+    let length = time.length
+    let avg 
+    if (length < 12) {
+        //No need to go any further, cpu can't have breached if we don't have two minute's data
+        return
+    } else {
+        // Calculate the average over the last 2 minutes
+        let sum = 0
+        for (let i = length - 12; i <= length - 1; i++) {
+            sum += cpu[i]
+        }
+        avg = sum / 12
+    }
+    return avg
+}; 
+
+  const handleHistoryModule = useCallback((avg, history, time) =>{
     let historyIndex = history.length - 1
     let lastHistory = history[historyIndex].breached
-    if (lastHistory && avg < 0.2) {
-      // Set breached state and log the index
-      setHistoryModule(false, length - 1)
-    } else if (!lastHistory && avg > 0.2) {
+    let timeIndex = time.length - 1
+    if (lastHistory && avg < 1) {
       // Set recovered state and log the index
-      setHistoryModule(true, length - 1)
+      setHistoryModule(false, timeIndex)
+    } else if (!lastHistory && avg > 1) {
+      // Set breached state and log the index
+      setHistoryModule(true, timeIndex)
     } else {
       return
     }
   }, [setHistoryModule])
 
-
   useEffect(() => {
-    handleHistoryModule(cpuAvg(cpu, time), history)
+    handleHistoryModule(cpuAvg(cpu, time), history, time)
   }, [cpu, time, history, handleHistoryModule]);
 
   return (
     <Timeline
+      data-testid="timeline"
       sx={{
         [`& .${timelineOppositeContentClasses.root}`]: {
           flex: 0.2,
