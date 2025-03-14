@@ -18,7 +18,7 @@ const EventTimeline = (props) => {
   let time = props.time;
   let historyLength = history.length;
 
-  //////// Hover Behavior////////////// (Sidelined due to time)
+  //////// Hover Behavior////////////// (Sidelined feature due to time constraints)
   // const handleOpen = (event) => {
   //   props.setAnchor(event.currentTarget);
   //   const propValue = event.currentTarget.getAttribute('datakey')
@@ -39,10 +39,8 @@ const EventTimeline = (props) => {
     let length = time.length;
     let avg;
     if (length < 12) {
-      //No need to go any further, cpu can't have breached if we don't have two minute's data
       return;
     } else {
-      // Calculate the average over the last 2 minutes
       let sum = 0;
       for (let i = length - 12; i <= length - 1; i++) {
         sum += cpu[i];
@@ -52,6 +50,7 @@ const EventTimeline = (props) => {
     return avg;
   };
 
+  // Handles the condition for alerts and recovery
   const handleHistoryModule = useCallback(
     (avg, history, time) => {
       let historyIndex = history.length - 1;

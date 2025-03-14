@@ -8,6 +8,7 @@ import Box from "@mui/material/Box";
 const CpuGraph = (props) => {
   /// X-Axis range state
   const [range, setRange] = useState([props.time[0], props.time[0] + 600000]);
+  // Move the time range of x-axis along with the data
   const handleRange = (time) => {
     let length = time.length;
     if (length > 61) {

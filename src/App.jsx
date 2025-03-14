@@ -40,6 +40,7 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 const App = () => {
+  // Incomplete data highlighting feature
   // const [highlightedItem, setHighlightedItem] = useState(null);
   // const [anchor, setAnchor] = useState(null);
   const [cpu, setCpu] = useState([0]);
@@ -51,7 +52,7 @@ const App = () => {
     hostname: "",
     platform: "",
   });
-  
+
   const handleOsImport = (data) => {
     const dataOs = {};
     for (const [key, value] of Object.entries(data)) {
