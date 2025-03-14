@@ -1,61 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import dayjs from 'dayjs'
-import { LineChart } from '@mui/x-charts/LineChart';
-import { ResponsiveChartContainer } from '@mui/x-charts/ResponsiveChartContainer';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
+import React, { useEffect, useState } from "react";
+import dayjs from "dayjs";
+// import EventId from './EventId'
 
-
+import { LineChart } from "@mui/x-charts/LineChart";
+import Box from "@mui/material/Box";
 
 const CpuGraph = (props) => {
-  const [range, setRange] = useState([props.time[0], (props.time[0] + 600000)]);
-
+  /// X-Axis range state
+  const [range, setRange] = useState([props.time[0], props.time[0] + 600000]);
   const handleRange = (time) => {
-      let length = time.length
-      if (length > 61) {
-        let max = length - 1
-        let min = length - 61
-        setRange([time[min], time[max]])
-      } else {
-        return
-      }
+    let length = time.length;
+    if (length > 61) {
+      let max = length - 1;
+      let min = length - 61;
+      setRange([time[min], time[max]]);
+    } else {
+      return;
     }
-    
-  useEffect(() => {
+  };
 
-    handleRange(props.time)
+  useEffect(() => {
+    handleRange(props.time);
   }, [props]);
 
   return (
-    <LineChart
-      height={400}
+    <Box height="48vh" width="40vw">
+      <LineChart
+        margin={{ top: 30, right: 30, bottom: 60, left: 60 }}
+        axisHighlight={{ x: "line" }}
+        series={[
+          {
+            type: "line",
+            data: props.cpu,
+            color: "#b973ff",
+          },
+        ]}
+        xAxis={[
+          {
+            data: props.time,
+            min: range[0],
+            max: range[1],
+            label: "Time",
+            datakey: "time",
+            tickMinStep: 60000,
+            valueFormatter: (time) => `${dayjs(time).format("h:mm:ss:A")}`,
+          },
+        ]}
+        yAxis={[
+          {
+            min: 0,
+            max: 2,
+            label: "Average CPU Usage",
+          },
+        ]}
+      >
+        {/* This was going to be a component highlighting the graph tick that corresponded to the Timeline Event on Hover. */}
+        {/* <EventId
+      range={range}
+      cpu={props.cpu}
+      time={props.time}
+      anchor={props.anchor}
+      setAnchor={props.setAnchor}
       highlightedItem={props.highlightedItem}
-      onHighlightChange={props.setHighlightedItem}
-      series={[
-        {
-          type: 'line',
-          data: props.cpu,
-          color: '#b973ff'
-        },
-      ]}
-      xAxis={[
-        {
-          data: props.time,
-          min: range[0],
-          max: range[1],
-          label: 'Time',
-          datakey: 'time',
-          valueFormatter: (time) =>
-            `${dayjs(time).format('h:mm:ss:A')}`
-        },
-      ]}
-      yAxis={[{
-        min: 0,
-        max: 2,
-        label: 'Average CPU Usage'
-      }]}
-    />
+      setHighlightedItem={props.setHighlightedItem}
+    /> */}
+      </LineChart>
+    </Box>
   );
-}
+};
 
-export default CpuGraph
+export default CpuGraph;
