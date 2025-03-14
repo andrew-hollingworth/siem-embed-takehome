@@ -10,6 +10,8 @@
 
 ## Overview
 
+    A simple application designed to visualize the average CPU for the host and alert when it breaches 1 over the last two minutes and subsequently recovers. The purpose was to fulfill the take-home assignment for an embed with the Cloud SIEM team. 
+
 ## Installation
 
 1. **Clone the Repository:**
