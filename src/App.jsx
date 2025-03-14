@@ -51,7 +51,7 @@ const App = () => {
     hostname: "",
     platform: "",
   });
-
+  
   const handleOsImport = (data) => {
     const dataOs = {};
     for (const [key, value] of Object.entries(data)) {
@@ -72,7 +72,7 @@ const App = () => {
     const setTimeModule = (newTime) => {
       setTime([...time, newTime]);
     };
-    // Get the data from the node server
+    // Get the data from the node server because os module doesn't run in browser
     const getServer = async () => {
       let resp = await fetch("http://localhost:3001/os-info");
       let data = await resp.json();
